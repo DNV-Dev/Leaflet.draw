@@ -119,7 +119,9 @@ L.Edit.Poly = L.Handler.extend({
 		if (marker._middleRight) {
 			marker._middleRight.setLatLng(this._getMiddleLatLng(marker, marker._next));
 		}
-
+		//custom event to get poly when vertex is moved
+		this._poly.fire('polyredraw');
+		
 		this._poly.redraw();
 	},
 
@@ -158,6 +160,9 @@ L.Edit.Poly = L.Handler.extend({
 		}
 
 		this._fireEdit();
+		
+		//custom event to get poly when vertex is moved
+		this._poly.fire('polyredraw');
 	},
 
 	_updateIndexes: function (index, delta) {
