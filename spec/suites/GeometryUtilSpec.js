@@ -13,7 +13,7 @@ describe("L.GeometryUtil", function () {
 
 	describe("readableDistance", function () {
 		it("metric", function () {
-			expect(L.GeometryUtil.readableDistance(1000, true)).to.eql('1000.00 m');
+			expect(L.GeometryUtil.readableDistance(100, true)).to.eql('100.00 m');
 			expect(L.GeometryUtil.readableDistance(1500, true)).to.eql('1.50 km');
 		});
 
