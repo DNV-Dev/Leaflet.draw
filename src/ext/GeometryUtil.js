@@ -51,7 +51,7 @@ L.GeometryUtil = L.extend(L.GeometryUtil || {}, {
 			if (distance > 1000) {
 				distanceStr = (distance  / 1000).toFixed(2) + ' km';
 			} else {
-				distanceStr = Math.ceil(distance) + ' m';
+				distanceStr = parseFloat(Math.round(distance * 100) / 100).toFixed(2) + ' m';
 			}
 		} else {
 			distance *= 1.09361;
@@ -59,7 +59,7 @@ L.GeometryUtil = L.extend(L.GeometryUtil || {}, {
 			if (distance > 1760) {
 				distanceStr = (distance / 1760).toFixed(2) + ' miles';
 			} else {
-				distanceStr = Math.ceil(distance) + ' yd';
+				distanceStr = parseFloat(Math.round(distance * 100) / 100).toFixed(2) + ' yd';
 			}
 		}
 
