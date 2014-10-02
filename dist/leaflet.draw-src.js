@@ -1721,6 +1721,7 @@ L.GeometryUtil = L.extend(L.GeometryUtil || {}, {
 
 		if (isMetric) {
 			// show metres when distance is < 1km, then show km
+			//updated to show 2 decimal places for m and yd measurements
 			if (distance > 1000) {
 				distanceStr = (distance  / 1000).toFixed(2) + ' km';
 			} else {
