@@ -1,4 +1,10 @@
 L.GeometryUtil = L.extend(L.GeometryUtil || {}, {
+	//there may be a more suitable general location for this function
+	validateNumeric: function(value) {
+		//taken from http://stackoverflow.com/questions/18082/validate-decimal-numbers-in-javascript-isnumeric
+  		return !isNaN(parseFloat(value)) && isFinite(value);
+	},
+
 	// Ported from the OpenLayers implementation. See https://github.com/openlayers/openlayers/blob/master/lib/OpenLayers/Geometry/LinearRing.js#L270
 	geodesicArea: function (latLngs) {
 		var pointsCount = latLngs.length,
@@ -19,48 +25,61 @@ L.GeometryUtil = L.extend(L.GeometryUtil || {}, {
 		return Math.abs(area);
 	},
 
-	readableArea: function (area, isMetric) {
+	perimeter: function(latLngs) {
+		var perimeter = latLngs[0].distanceTo(latLngs[1]);
+		for (var i = 1; i < latLngs.length - 1; i++) {
+			perimeter += latLngs[i].distanceTo(latLngs[i + 1]);
+		}
+		perimeter += latLngs[latLngs.length - 1].distanceTo(latLngs[0]);
+
+		return perimeter;
+	},
+
+	readableArea: function (area, isMetric, unitScale) {
 		var areaStr;
 
-		if (isMetric) {
-			if (area >= 10000) {
-				areaStr = (area * 0.0001).toFixed(2) + ' ha';
+		if (this.validateNumeric(area)) {
+			if (isMetric) {
+				if (area >= 10000 && unitScale) {
+					areaStr = (area * 0.0001).toFixed(2) + ' ha';
+				} else {
+					areaStr = area.toFixed(2) + ' m&sup2;';
+				}
 			} else {
-				areaStr = area.toFixed(2) + ' m&sup2;';
-			}
-		} else {
-			area /= 0.836127; // Square yards in 1 meter
+				area /= 0.836127; // Square yards in 1 meter
 
-			if (area >= 3097600) { //3097600 square yards in 1 square mile
-				areaStr = (area / 3097600).toFixed(2) + ' mi&sup2;';
-			} else if (area >= 4840) {//48040 square yards in 1 acre
-				areaStr = (area / 4840).toFixed(2) + ' acres';
-			} else {
-				areaStr = Math.ceil(area) + ' yd&sup2;';
+				if (area >= 3097600 && unitScale) { //3097600 square yards in 1 square mile
+					areaStr = (area / 3097600).toFixed(2) + ' mi&sup2;';
+				} else if (area >= 4840 && unitScale) {//48040 square yards in 1 acre
+					areaStr = (area / 4840).toFixed(2) + ' acres';
+				} else {
+					areaStr = Math.ceil(area) + ' yd&sup2;';
+				}
 			}
 		}
-
 		return areaStr;
 	},
 
-	readableDistance: function (distance, isMetric) {
+	readableDistance: function (distance, isMetric, unitScale) {
 		var distanceStr;
 
-		if (isMetric) {
-			// show metres when distance is < 1km, then show km
-			//updated to show 2 decimal places for m and yd measurements
-			if (distance > 1000) {
-				distanceStr = (distance  / 1000).toFixed(2) + ' km';
+		if (this.validateNumeric(distance)) {
+			if (isMetric) {
+				// show metres when distance is < 1km, then show km
+				//updated to show 2 decimal places for m and yd measurements
+				if (distance > 1000 && unitScale) {
+					distanceStr = (distance  / 1000).toFixed(2) + ' km';
+				} else {
+					distanceStr = parseFloat(Math.round(distance * 100) / 100).toFixed(2) + ' m';
+				}
 			} else {
-				distanceStr = parseFloat(Math.round(distance * 100) / 100).toFixed(2) + ' m';
-			}
-		} else {
-			distance *= 1.09361;
+				distance *= 1.09361;
 
-			if (distance > 1760) {
-				distanceStr = (distance / 1760).toFixed(2) + ' miles';
-			} else {
-				distanceStr = parseFloat(Math.round(distance * 100) / 100).toFixed(2) + ' yd';
+				if (distance > 1760 && unitScale) {
+					distanceStr = (distance / 1760).toFixed(2) + ' miles';
+				} else {
+					distanceStr = parseFloat(Math.round(distance * 100) / 100).toFixed(2) + ' yd';
+				}
 			}
 		}
 
