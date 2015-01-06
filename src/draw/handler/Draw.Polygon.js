@@ -7,6 +7,7 @@ L.Draw.Polygon = L.Draw.Polyline.extend({
 
 	options: {
 		showArea: false,
+		showPerimeter: false,
 		shapeOptions: {
 			stroke: true,
 			color: '#f06eaa',
@@ -26,26 +27,52 @@ L.Draw.Polygon = L.Draw.Polyline.extend({
 		this.type = L.Draw.Polygon.TYPE;
 	},
 
+	_onMouseMove : function (e) {
+		var latlng = e.latlng,
+		latlngCount = this._poly.getLatLngs().length;
+
+		if (latlngCount === 2) {
+			this._isGuideVisible = false;
+			this.addVertex(latlng);
+		} else if (latlngCount > 2) {
+			this._poly.spliceLatLngs(latlngCount - 1, 1, latlng)[0];
+			this._calculatePolygonMeasurements();
+		}
+		
+		L.Draw.Polyline.prototype._onMouseMove.call(this, e);
+	},
+
+	_finishShape: function() {
+		this.deleteLastVertex();
+		this._isGuideVisible = true;
+		L.Draw.Polyline.prototype._finishShape.call(this);
+	},
+
 	_updateFinishHandler: function () {
 		var markerCount = this._markers.length;
-
 		// The first marker should have a click handler to close the polygon
 		if (markerCount === 1) {
 			this._markers[0].on('click', this._finishShape, this);
 		}
+	},
 
-		// Add and update the double click handler
-		if (markerCount > 2) {
-			this._markers[markerCount - 1].on('dblclick', this._finishShape, this);
-			// Only need to remove handler if has been added before
-			if (markerCount > 3) {
-				this._markers[markerCount - 2].off('dblclick', this._finishShape, this);
-			}
+	_calculatePolygonMeasurements: function() {
+		var latLngs = this._poly.getLatLngs(),
+		perimeter = 0;
+		
+		// Check to see if we should calculate the area
+		if (this.options.showArea) {
+			this._area = L.GeometryUtil.geodesicArea(latLngs);
+		}
+
+		// Check to see if we should calculate the perimeter
+		if (this.options.showPerimeter) {
+			this._perimeter = L.GeometryUtil.perimeter(latLngs);
 		}
 	},
 
 	_getTooltipText: function () {
-		var text, subtext;
+		var text, subtext, measurement, area, perimeter, lineBreak;
 
 		if (this._markers.length === 0) {
 			text = L.drawLocal.draw.handlers.polygon.tooltip.start;
@@ -53,7 +80,15 @@ L.Draw.Polygon = L.Draw.Polyline.extend({
 			text = L.drawLocal.draw.handlers.polygon.tooltip.cont;
 		} else {
 			text = L.drawLocal.draw.handlers.polygon.tooltip.end;
-			subtext = this._getMeasurementString();
+			
+			measurement = this._getMeasurementString();
+			
+			//updated to optionally display area and/or perimeter of polygon during drawing
+			area = this.options.showArea ? 'Area: ' + measurement.area : '';
+			perimeter = this.options.showPerimeter ?  'Perimeter: ' + measurement.perimeter : '';
+			lineBreak = this.options.showArea && this.options.showPerimeter ? '<br>' : '';
+
+			subtext = area + lineBreak + perimeter;
 		}
 
 		return {
@@ -63,30 +98,11 @@ L.Draw.Polygon = L.Draw.Polyline.extend({
 	},
 
 	_getMeasurementString: function () {
-		var area = this._area;
-
-		if (!area) {
-			return null;
-		}
-
-		return L.GeometryUtil.readableArea(area, this.options.metric);
+		return {area: this.options.showArea ? L.GeometryUtil.readableArea(this._area, this.options.metric) : '', perimeter: this.options.showPerimeter ? L.GeometryUtil.readableDistance(this._perimeter, this.options.metric) : ''};
 	},
 
 	_shapeIsValid: function () {
 		return this._markers.length >= 3;
-	},
-
-	_vertexChanged: function (latlng, added) {
-		var latLngs;
-
-		// Check to see if we should show the area
-		if (!this.options.allowIntersection && this.options.showArea) {
-			latLngs = this._poly.getLatLngs();
-
-			this._area = L.GeometryUtil.geodesicArea(latLngs);
-		}
-
-		L.Draw.Polyline.prototype._vertexChanged.call(this, latlng, added);
 	},
 
 	_cleanUpShape: function () {
@@ -94,10 +110,6 @@ L.Draw.Polygon = L.Draw.Polyline.extend({
 
 		if (markerCount > 0) {
 			this._markers[0].off('click', this._finishShape, this);
-
-			if (markerCount > 2) {
-				this._markers[markerCount - 1].off('dblclick', this._finishShape, this);
-			}
 		}
 	}
 });
