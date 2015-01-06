@@ -43,6 +43,9 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 		// Save the type so super can fire, need to do this as cannot do this.TYPE :(
 		this.type = L.Draw.Polyline.TYPE;
 
+		//set visibility of dotted guidelines for polyline drawing
+		this._isGuideVisible = true;
+
 		L.Draw.Feature.prototype.initialize.call(this, map, options);
 	},
 
@@ -134,6 +137,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 	},
 
 	addVertex: function (latlng) {
+
 		var markersLength = this._markers.length;
 
 		if (markersLength > 0 && !this.options.allowIntersection && this._poly.newLatLngIntersects(latlng)) {
@@ -156,6 +160,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 	},
 
 	_finishShape: function () {
+
 		var intersects = this._poly.newLatLngIntersects(this._poly.getLatLngs()[0], true);
 
 		if ((!this.options.allowIntersection && intersects) || !this._shapeIsValid()) {
@@ -177,7 +182,10 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 	},
 
 	_onZoomEnd: function () {
-		this._updateGuide();
+		if (this._isGuideVisible) {
+			// Update the guide line
+			this._updateGuide(newPos);
+		}
 	},
 
 	_onMouseMove: function (e) {
@@ -190,8 +198,10 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 
 		this._updateTooltip(latlng);
 
-		// Update the guide line
-		this._updateGuide(newPos);
+		if (this._isGuideVisible) {
+			// Update the guide line
+			this._updateGuide(newPos);
+		}
 
 		// Update the mouse marker position
 		this._mouseMarker.setLatLng(latlng);
@@ -293,7 +303,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 			this._guidesContainer = L.DomUtil.create('div', 'leaflet-draw-guides', this._overlayPane);
 		}
 
-		//draw a dash every GuildeLineDistance
+		//draw a dash every GuideLineDistance
 		for (; i < length; i += this.options.guidelineDistance) {
 			//work out fraction along line we are
 			fraction = i / length;
@@ -339,7 +349,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 				text: L.drawLocal.draw.handlers.polyline.tooltip.start
 			};
 		} else {
-			distanceStr = showLength ? this._getMeasurementString() : '';
+			distanceStr = showLength ? 'Length: ' + this._getMeasurementString() : '';
 
 			if (this._markers.length === 1) {
 				labelText = {
