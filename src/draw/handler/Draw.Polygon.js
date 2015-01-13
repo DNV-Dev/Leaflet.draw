@@ -26,6 +26,11 @@ L.Draw.Polygon = L.Draw.Polyline.extend({
 		// Save the type so super can fire, need to do this as cannot do this.TYPE :(
 		this.type = L.Draw.Polygon.TYPE;
 	},
+	
+	disable: function() {
+		this._isGuideVisible = true;
+		L.Draw.Polyline.prototype.disable.call(this);
+	},
 
 	_onMouseMove : function (e) {
 		var latlng = e.latlng,
