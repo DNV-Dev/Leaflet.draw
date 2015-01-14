@@ -184,7 +184,7 @@ L.Draw.Polyline = L.Draw.Feature.extend({
 	_onZoomEnd: function () {
 		if (this._isGuideVisible) {
 			// Update the guide line
-			this._updateGuide(newPos);
+			this._updateGuide();
 		}
 	},
 
