@@ -84,16 +84,19 @@ L.Draw.Polygon = L.Draw.Polyline.extend({
 		} else if (this._markers.length < 3) {
 			text = L.drawLocal.draw.handlers.polygon.tooltip.cont;
 		} else {
-			text = L.drawLocal.draw.handlers.polygon.tooltip.end;
-			
 			measurement = this._getMeasurementString();
-			
-			//updated to optionally display area and/or perimeter of polygon during drawing
-			area = this.options.showArea ? 'Area: ' + measurement.area : '';
-			perimeter = this.options.showPerimeter ?  'Perimeter: ' + measurement.perimeter : '';
-			lineBreak = this.options.showArea && this.options.showPerimeter ? '<br>' : '';
 
-			subtext = area + lineBreak + perimeter;
+			if (measurement.area != undefined && measurement.perimeter != undefined) {
+				text = L.drawLocal.draw.handlers.polygon.tooltip.end;
+				//updated to optionally display area and/or perimeter of polygon during drawing
+				area = this.options.showArea ? 'Area: ' + measurement.area : '';
+				perimeter = this.options.showPerimeter ?  'Perimeter: ' + measurement.perimeter : '';
+				lineBreak = this.options.showArea && this.options.showPerimeter ? '<br>' : '';
+
+				subtext = area + lineBreak + perimeter;
+			} else {
+				text = L.drawLocal.draw.handlers.polygon.tooltip.cont;
+			}
 		}
 
 		return {
